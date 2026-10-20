@@ -22,10 +22,6 @@ class ConversationAgent:
             return file.read()
 
 
-    def get_conversation_history(self):
-        return self.conversation_history[1: ]
-
-
     def update_conversation_history(self, role, content):
         self.conversation_history.append(
             {
@@ -33,11 +29,20 @@ class ConversationAgent:
             "content": content,
             }
         )
+        
+    def transcribe_audio(self, audio_file):
+        transcription = self.groq_client.audio.transcriptions.create(
+            file=(audio_file.name, audio_file.read()),
+            model="whisper-large-v3-turbo",
+            response_format="json",
+            language="fr",  
+        )
+        return transcription.text
+    
+    
+    def ask_llm(self, question):
 
-
-    def ask_llm(self, text_interaction):
-
-        self.update_conversation_history(role="user", content=text_interaction)
+        self.update_conversation_history(role="user", content=question)
 
         response = self.groq_client.chat.completions.create(
             messages=self.conversation_history,
